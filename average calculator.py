@@ -92,5 +92,5 @@ def calculate_and_print(courses):
         print "\tta shows", round(course.mark*100, 1), "\n"
 
 
-courses = unpack_file("average_calculator_data.txt", [])
+courses = unpack_file("example_text_data.txt", [])
 calculate_and_print(courses)
