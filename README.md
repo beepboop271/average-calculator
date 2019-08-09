@@ -1,6 +1,5 @@
 # average-calculator
-does stuff with marks
-currently only accepts properly formatted text files
+does stuff with marks: currently only accepts properly formatted text files
 
 todo:
 
