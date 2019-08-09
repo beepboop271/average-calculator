@@ -10,7 +10,7 @@ todo:
 - maybe ability to fetch marks from teachassist?
 - maybe what mark do i need to get in x to have average y?
 
-###========================================================================
+### ========================================================================
 
 ## calculation explanation
 this application is intended for the following style of mark calculation:
@@ -23,14 +23,14 @@ for example, a math quiz might have 20 marks in knowledge at weight 2 (like mult
 
 a math test on the other hand might have 15 knowledge at weight 7 (because the test is more important to the final average), 10 communication marks at weight 7, and 20 thinking marks at weight 7
 
-say a student got the following:\
+say a student got the following:
 ```
       K     T     C     A
 quiz  17/20 n/a   n/a   19/20
 test  15/15 18/20 9/10  n/a
 ```
 
-as percentages:\
+as percentages:
 ```
       K    T    C    A
 quiz  85%  n/a  n/a  95%
@@ -49,7 +49,7 @@ each course will have a different weighting for each strand. for example a scien
 
 so each strand weighted average is then multiplied by the strand weight, and the sum of each weighted strand is the final average
 
-e.g. for the math course:\
+e.g. for the math course:
 ```
 K (30%) T (15%) C (15%) A (40%)
 96.7%   90%     90%     95%
