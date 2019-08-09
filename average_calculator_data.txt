@@ -1,0 +1,61 @@
+COURSE TEJ3M1-03
+WEIGHTS 21 14 3.5 31.5 30
+number-systems-test         20/20 10    16/16 10    n           20/20 10    n
+dream-pc                    n           16/16 7     n           n           n
+building-pc                 15/15 7     10/10 9     n           40/40 10    n
+logic-gates                 16/16 9     16/16 8     n           16/16 10    n
+ldr-soldering               20/20 9     10/10 5     n           20/20 10    n
+electronics-test            20/20 10    10/10 9     4/4 9       19/21 9     n
+sensor-research             n           n           15/15 6     n           n
+seven-segment-display       10/10 8     n           n           20/20 9     n
+traffic-lights              n           10/10 9     3/3 6       20/20 10    n
+crosswalk                   6/6 9       8/8 10      n           20/20 10    n
+ultrasonic-sensor           n           n           n           20/20 10    n
+roll-the-dice               20/20 7     10/10 8     10/10 6     20/20 10    n
+boebot-tracing-m            6/6 7       10/10 8     n           10/10 10    n
+boebot-in-circles           n           10/10 8     n           20/20 9     n
+boebot-ir-sensors           n           n           n           20/20 9     n
+final-project               n           n           n           n           102/100 20
+final-exam                  n           n           n           n           83.5/90 10
+
+COURSE SNC2DG-03
+WEIGHTS 25 15 15 15 30
+chem-naming-1               20/20 5     n           n           n           n
+chem-naming-2               6/6 5       n           n           n           n
+types-of-reactions-lab      n           16/16 5     n           n           n
+test-chem                   35.5/36 10  n           n           16.5/18 10  n
+acid-base-lab               n           29/29 7     n           n           n
+cheek-cell-diagram          n           12/12 4     n           n           n
+bio-quiz                    18.5/19 5   n           n           n           n
+bio-test                    32/32 10    n           9.5/10 10   32/34 10    n
+paramecium-diagram          n           n           8/8 5       n           n
+bone-tissue-diagram         n           21/21 5     n           n           n
+dr-google                   n           n           9/10 5      30/30 5     n
+laser-security              n           n           n           26/26 5     n
+bio-bellringer-summative    n           n           n           n           53/55 2.5
+optics-test                 33.5/34 10  n           9/10 10     23/23 10    n
+solar-oven                  n           9/10 5      n           n           n
+optics-summative            n           n           n           n           28/28 2.5
+chem-summative              n           n           n           n           22/22 2.5
+climate-change              n           n           n           n           28/29 2.5
+final-exam                  n           n           n           n           99/100 20
+
+COURSE MCR3U6-03
+WEIGHTS 25 10 10 25 30
+review-quiz1                17/18 3     n           n           22/22 3     n
+radicals-quadratics-quiz2   n           n           n           35/35 3     n
+quadratic-word-quiz3        n           24.5/25 3   n           n           n
+quadratics-test             18.5/20 10  20/20 10    10/10 10    20/20 10    n
+factor-theorem-quiz4        n           n           n           29/30 3     n
+polynomials-quiz5           18/18 3     n           n           18/18 3     n
+transformations-quiz6       17.5/18 3   n           n           18/18 3     n
+exponentials-quiz7          20/20 3     n           n           19.5/20 3   n
+functions-test              19.5/20 10  20/20 10    10/10 10    18.5/20 10  n
+exponentials-log-quiz8      n           n           n           27.5/28 3   n
+trig-quiz9                  n           15/15 3     n           24/24 3     n
+trig-applications-quiz10    n           14/14 3     n           14/14 3     n
+trig-graphing-quiz11        14/15 3     n           n           14.5/15 3   n
+trig-test                   20/20 10    20/20 10    10/10 10    20/20 10    n
+sequences-series-quiz12     n           20/20 3     n           n           n
+sequences-series-test       18/18 10    18/18 10    10/10 10    17.5/18 10  n
+final-exam                  n           n           n           n           1/1 1
