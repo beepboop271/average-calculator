@@ -10,8 +10,6 @@ todo:
 - maybe ability to fetch marks from teachassist?
 - maybe what mark do i need to get in x to have average y?
 
-### ========================================================================
-
 ## calculation explanation
 this application is intended for the following style of mark calculation:
 
