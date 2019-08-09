@@ -21,11 +21,11 @@ todo:
 ========================================================================
 # calculation explanation
 this application is intended for the following style of mark calculation:
-each assignment can have marks from at least 1 of 4 strands: "knowledge+understanding", "thinking+inquiry", "communication", and "application"
-an assignment can also have a mark for the "final" strand
-every single mark for each strand has an individual weight
+
+each assignment can have marks from at least 1 of 4 strands: "knowledge+understanding", "thinking+inquiry", "communication", and "application". an assignment can also have a mark for the "final" strand. every single mark for each strand has an individual weight
 
 for example, a math quiz might have 20 marks in knowledge at weight 2 (like multiple choice) and 20 marks in application at weight 2 (for some full solution problem solving questions)
+
 a math test on the other hand might have 15 knowledge at weight 7 (because the test is more important to the final average), 10 communication marks at weight 7, and 20 thinking marks at weight 7
 
 say a student got the following:
