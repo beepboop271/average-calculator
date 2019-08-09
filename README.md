@@ -10,8 +10,9 @@ todo:\
 -maybe ability to fetch marks from teachassist?\
 -maybe what mark do i need to get in x to have average y?
 
-========================================================================
-# calculation explanation
+###========================================================================
+
+## calculation explanation
 this application is intended for the following style of mark calculation:
 
 each assignment can have marks from at least 1 of 4 strands: "knowledge+understanding", "thinking+inquiry", "communication", and "application"\
