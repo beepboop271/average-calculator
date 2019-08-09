@@ -3,16 +3,23 @@ does stuff with marks
 currently only accepts properly formatted text files
 
 todo:
+
 -gui
+
 -see what would happen if mark x was changed to y
+
 -see what would happen if an assignment was removed
+
 -add an assignment with hypothetical marks to see what would happen
+
 -add an assigment to see your real mark before a teacher inputs marks into teachassist
+
 -maybe ability to fetch marks from teachassist?
+
 -maybe what mark do i need to get in x to have average y?
 
 ========================================================================
-#calculation explanation
+# calculation explanation
 this application is intended for the following style of mark calculation:
 each assignment can have marks from at least 1 of 4 strands: "knowledge+understanding", "thinking+inquiry", "communication", and "application"
 an assignment can also have a mark for the "final" strand
