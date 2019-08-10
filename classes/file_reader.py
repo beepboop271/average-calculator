@@ -4,7 +4,7 @@ from assessment import Assessment
 STRANDS = ["k", "t", "c", "a", "f"]
 
 
-def unpack_file(path, courses):
+def unpack_file(path):
     data = __parse_to_lists(path)
     # for each course
     courses = []
