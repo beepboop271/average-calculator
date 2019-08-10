@@ -2,7 +2,7 @@
 does stuff with marks: currently only accepts properly formatted text files
 
 todo:
-- gui
+- gui feat. pygame because thats what we used in grade 10 comp sci and im not learning anything else
 - see what would happen if mark x was changed to y
 - see what would happen if an assignment was removed
 - add an assignment with hypothetical marks to see what would happen
