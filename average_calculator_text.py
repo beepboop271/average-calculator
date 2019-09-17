@@ -1,4 +1,5 @@
-from classes.file_reader import unpack_file
+from classes.file_io import unpack_file, pack_file
+from classes.teachassist_scraper import get_from_ta
 
 # output precision
 STRAND_PRECISION = 5

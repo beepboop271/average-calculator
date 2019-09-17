@@ -5,7 +5,7 @@ STRANDS = ["k", "t", "c", "a", "f"]
 
 
 def unpack_file(path):
-    data = __parse_to_lists(path)
+    data = _parse_to_lists(path)
     # for each course
     courses = []
     for i in range(len(data)):
@@ -28,14 +28,45 @@ def unpack_file(path):
                                                       split_mark[1],
                                                       float(weight),
                                                       STRANDS[strand])
-                        courses[i].add_assessment_obj(assessment_obj)
                     strand += 1
                 except(StopIteration):
                     break
+            courses[i].add_assessment_obj(assessment_obj)
+
     return courses
 
 
-def __parse_to_lists(path):
+def pack_file(courses, path):
+    s = ""
+    for course in courses:
+        s += "COURSE "+course.course+"\n"
+
+        s += "WEIGHTS"
+        for strand in STRANDS:
+            s += " "+str(course.strands.get(strand).weight)
+        s += "\n"
+
+        for assessment in course.assessments:
+            s += assessment.name
+            for strand in STRANDS:
+                s += "    "
+                strand_mark = assessment.marks.get(strand)
+                if strand_mark is None:
+                    s += "n"
+                else:
+                    s += str(strand_mark.numerator)
+                    s += "/"+str(strand_mark.denominator)
+                    s += " "+str(strand_mark.weight)
+            s += "\n"
+
+        s += "\n"
+
+    f = open(path, "w")
+    f.write(s)
+    f.close()
+
+
+def _parse_to_lists(path):
     f = open(path)
     data = f.read()
     f.close()
@@ -48,9 +79,9 @@ def __parse_to_lists(path):
     pattern = re.compile(r"\s+")
     courses = [[re.sub(pattern, r" ", assessment) for assessment in course] for course in courses]
     # remove empty lists and strings
-    __remove_empty(courses)
+    _remove_empty(courses)
     for i in range(len(courses)):
-        __remove_empty(courses[i])
+        _remove_empty(courses[i])
     # split assessments to strands
     for course in courses:
         for i in range(len(course)):
@@ -60,7 +91,7 @@ def __parse_to_lists(path):
     return courses
 
 
-def __remove_empty(x):
+def _remove_empty(x):
     for i in range(len(x)-1, -1, -1):
         if type(x[i]) == str:
             if len(x[i]) < 1:

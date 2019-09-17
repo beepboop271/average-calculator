@@ -39,6 +39,7 @@ class Course():
         self.strands[strand] = Strand(strand, course_weight)
 
     def add_assessment_obj(self, assessment_obj):
+        self.assessments.append(assessment_obj)
         for strand in assessment_obj.marks.keys():
             if assessment_obj.marks[strand] is not None:
                 self.strands[strand].add_mark_obj(assessment_obj.marks[strand])
