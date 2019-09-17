@@ -1,2 +1,7 @@
-12345678 (username)
-abcdefgh (password)
+12345678 (board username)
+abcdefgh (board password)
+123456   (ta student id)
+1        (ta subject ids)
+2        "
+3        "
+4        " etc
