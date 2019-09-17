@@ -7,7 +7,7 @@ todo:
 - see what would happen if an assignment was removed
 - add an assignment with hypothetical marks to see what would happen
 - add an assigment to see your real mark before a teacher inputs marks into teachassist
-- maybe ability to fetch marks from teachassist?
+- fetch marks from teachassist using requests
 - maybe what mark do i need to get in x to have average y?
 
 ## calculation explanation
