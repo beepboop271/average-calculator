@@ -10,6 +10,19 @@ todo:
 - fetch marks from teachassist using requests
 - maybe what mark do i need to get in x to have average y?
 
+## formatting the data file
+COURSE *name-of-the-course*\n\
+WEIGHTS *KU-weight* *TI-weight* *C-weight* *A-weight*\n\
+*assessment-name* *KU-mark* *TI-mark* *C-mark* *A-mark* *FINAL-mark*\n\
+*repeat assessments until done*\n\
+\n\
+*repeat courses until done*\
+note: any amount of whitespace is allowed when listing assessments, see example files
+### formatting marks
+*numerator*/*denominator* *weight*\
+or\
+the character 'n' if no mark is given in the strand
+
 ## calculation explanation
 this application is intended for the following style of mark calculation:
 
