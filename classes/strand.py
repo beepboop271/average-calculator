@@ -1,13 +1,13 @@
 class Strand():
-    def __init__(self, strand, course_weight):
-        self.strand = strand
+    def __init__(self, strand_str, course_weight):
+        self.name = strand_str
         self.weight = course_weight
         self.marks = []
         self.mark = 1.0
         self.is_valid = False
 
     # def __str__(self):
-    #     s = "("+self.strand+" cw"+str(self.weight)+" [ "
+    #     s = "("+self.name+" cw"+str(self.weight)+" [ "
     #     for mark in self.marks:
     #         s += str(mark)+" "
     #     s += "])"

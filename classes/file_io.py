@@ -1,7 +1,7 @@
 import re
 from course import Course
 from assessment import Assessment
-STRANDS = ["k", "t", "c", "a", "f"]
+STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
 def unpack_file(path):
@@ -27,7 +27,7 @@ def unpack_file(path):
                         assessment_obj.add_mark_tuple(split_mark[0],
                                                       split_mark[1],
                                                       float(weight),
-                                                      STRANDS[strand])
+                                                      STRAND_STRINGS[strand])
                     strand += 1
                 except(StopIteration):
                     break
@@ -39,18 +39,18 @@ def unpack_file(path):
 def pack_file(courses, path):
     s = ""
     for course in courses:
-        s += "COURSE "+course.course+"\n"
+        s += "COURSE "+course.name+"\n"
 
         s += "WEIGHTS"
-        for strand in STRANDS:
-            s += " "+str(course.strands.get(strand).weight)
+        for strand_str in STRAND_STRINGS:
+            s += " "+str(course.strands.get(strand_str).weight)
         s += "\n"
 
         for assessment in course.assessments:
             s += assessment.name
-            for strand in STRANDS:
+            for strand_str in STRAND_STRINGS:
                 s += "    "
-                strand_mark = assessment.marks.get(strand)
+                strand_mark = assessment.marks.get(strand_str)
                 if strand_mark is None:
                     s += "n"
                 else:

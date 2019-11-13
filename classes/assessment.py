@@ -12,5 +12,8 @@ class Assessment():
                       "a": application,
                       "f": final}
 
-    def add_mark_tuple(self, numerator, denominator, weight, strand):
-        self.marks[strand] = Mark(numerator, denominator, weight, strand)
+    def add_mark_tuple(self, numerator, denominator, weight, strand_str):
+        self.marks[strand_str] = Mark(numerator,
+                                      denominator,
+                                      weight,
+                                      strand_str)

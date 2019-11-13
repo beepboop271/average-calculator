@@ -1,12 +1,12 @@
 from strand import Strand
-STRANDS = ["k", "t", "c", "a", "f"]
+STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
 class Course():
     def __init__(self, course, weights=[],
                  knowledge=None, thinking=None, communication=None,
                  application=None, final=None):
-        self.course = course
+        self.name = course
         self.strands = {"k": knowledge,
                         "t": thinking,
                         "c": communication,
@@ -17,15 +17,15 @@ class Course():
         self.is_valid = False
         if len(weights) == len(self.strands):
             for i in range(len(self.strands)):
-                self.add_strand_tuple(STRANDS[i], weights[i])
+                self.add_strand_tuple(STRAND_STRINGS[i], weights[i])
 
     def get_report_str(self, strand_precision=3, course_precision=4):
-        s = self.course+"\n\t"
-        for strand in STRANDS:
-            strand = self.strands[strand]
-            s += strand.strand+" "
-            if strand.is_valid:
-                s += str(round(strand.mark*100, strand_precision))+" \t"
+        s = self.name+"\n\t"
+        for strand_str in STRAND_STRINGS:
+            strand_obj = self.strands[strand_str]
+            s += strand_obj.name+" "
+            if strand_obj.is_valid:
+                s += str(round(strand_obj.mark*100, strand_precision))+" \t"
             else:
                 s += "None\t"
         if self.is_valid:
@@ -35,24 +35,23 @@ class Course():
             s += "\n\tavg None\n\tta shows None"
         return s
 
-    def add_strand_tuple(self, strand, course_weight):
-        self.strands[strand] = Strand(strand, course_weight)
+    def add_strand_tuple(self, strand_str, course_weight):
+        self.strands[strand_str] = Strand(strand_str, course_weight)
 
     def add_assessment_obj(self, assessment_obj):
         self.assessments.append(assessment_obj)
-        for strand in assessment_obj.marks.keys():
-            if assessment_obj.marks[strand] is not None:
-                self.strands[strand].add_mark_obj(assessment_obj.marks[strand])
+        for strand_str in assessment_obj.marks.keys():
+            if assessment_obj.marks[strand_str] is not None:
+                self.strands[strand_str].add_mark_obj(assessment_obj.marks[strand_str])
 
     def calculate_course_mark(self):
-        for strand in self.strands.values():
-            strand.calculate_strand_mark()
         total_weights = 0
         weighted_sum = 0
-        for strand in self.strands.values():
-            if strand.is_valid:
-                total_weights += strand.weight
-                weighted_sum += strand.mark*strand.weight
+        for strand_obj in self.strands.values():
+            strand_obj.calculate_strand_mark()
+            if strand_obj.is_valid:
+                total_weights += strand_obj.weight
+                weighted_sum += strand_obj.mark*strand_obj.weight
         if total_weights == 0:
             self.is_valid = False
             self.mark = 1.0
