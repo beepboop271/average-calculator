@@ -2,6 +2,12 @@ import requests
 import re
 TA_LOGIN_URL = "https://ta.yrdsb.ca/yrdsb/"
 TA_COURSE_BASE_URL = "https://ta.yrdsb.ca/live/students/viewReport.php"
+STRAND_PATTERNS = [
+    re.compile(r"<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"),
+    re.compile(r"<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"),
+    re.compile(r"<td bgcolor=\"afafff\" align=\"center\" id=\"\S+?\">([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"),
+    re.compile(r"<td bgcolor=\"ffd490\" align=\"center\" id=\"\S+?\">([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>")
+]
 
 
 def get_from_ta(auth_dict, student_id, subject_ids):
@@ -23,7 +29,7 @@ def get_from_ta(auth_dict, student_id, subject_ids):
 
 
 def get_name(report):
-    print re.search(r"<h2>(\S+)</h2>", report).group(1)
+    print re.search(r"<h2>(\S+?)</h2>", report).group(1)
 
 
 def get_weights(report):
@@ -39,10 +45,6 @@ def get_weights(report):
 
 
 def get_assessments(report):
-    # idx = re.search(r"table border=\"1\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\"",
-    #                 report).start()
-    # report = _get_whole_table(report, idx)
-    # report = _get_end_tag(report, idx, r"(<table)|(</table>)", "<table")
     report = _get_next_tag_pair(report,
                                 r"table border=\"1\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\"",
                                 r"(<table)|(</table>)",
@@ -51,7 +53,7 @@ def get_assessments(report):
                     r"",
                     report)
     rows = []
-    while _has_pair(report, r"<tr>.+</tr>"):
+    while _has_match(report, r"<tr>.+</tr>"):
         tag = _get_next_tag_pair(report,
                                  r"<tr>",
                                  r"(<tr>)|(</tr>)",
@@ -59,9 +61,27 @@ def get_assessments(report):
         rows.append(tag[0])
         report = report[tag[2]:]
 
-    print rows
+    rows.pop(0)
+    
+    names = []
+    strand_marks = []
+    for row in rows:
+        # print row
+        names.append(re.search(r"<td rowspan=\"2\">(.+?)</td>", row).group(1))
+        this_assessment = []
+        for strand_pattern in STRAND_PATTERNS:
+            match = re.search(strand_pattern, row)
+            if match is not None:
+                this_assessment.append([match.group(1), match.group(2), match.group(3)])
+            else:
+                this_assessment.append(None)
+        strand_marks.append(this_assessment)
+        
+    print names
+    print strand_marks
 
-def _has_pair(report, regex):
+
+def _has_match(report, regex):
     return re.search(regex, report) is not None
 
 
