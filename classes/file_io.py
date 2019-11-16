@@ -1,6 +1,6 @@
 import re
-from course import Course
-from assessment import Assessment
+from .course import Course
+from .assessment import Assessment
 STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
@@ -37,39 +37,52 @@ def unpack_file(path):
 
 
 def pack_file(courses, path):
-    s = ""
+    s = []
     for course in courses:
-        s += "COURSE "+course.name+"\n"
+        if course is None:
+            continue
+        s.append("COURSE "+course.name+"\n")
 
-        s += "WEIGHTS"
+        s.append("WEIGHTS")
         for strand_str in STRAND_STRINGS:
-            s += " "+str(course.strands.get(strand_str).weight)
-        s += "\n"
+            s.append(" "+str(course.strands.get(strand_str).weight))
+        s.append("\n")
 
         for assessment in course.assessments:
-            s += assessment.name
+            s.append(_pad(assessment.name, 32))
             for strand_str in STRAND_STRINGS:
-                s += "    "
                 strand_mark = assessment.marks.get(strand_str)
                 if strand_mark is None:
-                    s += "n"
+                    s.append(_pad("n", 12))
                 else:
-                    s += str(strand_mark.numerator)
-                    s += "/"+str(strand_mark.denominator)
-                    s += " "+str(strand_mark.weight)
-            s += "\n"
+                    s.append(_pad((_get_num_str(strand_mark.numerator)
+                                   + "/"+_get_num_str(strand_mark.denominator)
+                                   + " "+_get_num_str(strand_mark.weight)),
+                                  12))
+            s.append("\n")
+        s.append("\n")
 
-        s += "\n"
+    with open(path, "w") as f:
+        f.write("".join(s))
 
-    f = open(path, "w")
-    f.write(s)
-    f.close()
+
+def _pad(s, min_len):
+    if len(s) < min_len:
+        return s+" "*(min_len-len(s))
+    else:
+        return s+" "
+
+
+def _get_num_str(num):
+    if int(num) == num:
+        return str(int(num))
+    else:
+        return str(num)
 
 
 def _parse_to_lists(path):
-    f = open(path)
-    data = f.read()
-    f.close()
+    with open(path) as f:
+        data = f.read()
 
     # split to courses
     courses = data.strip().split("COURSE ")
