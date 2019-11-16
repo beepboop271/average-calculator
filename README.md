@@ -1,14 +1,11 @@
 # average-calculator
-does stuff with marks: currently only accepts properly formatted text files
+does stuff with marks: ~~currently only accepts properly formatted text files~~ really really close to getting from teach assist (the hard stuff is all done)
 
 todo:
 - gui feat. pygame because thats what we used in grade 10 comp sci and im not learning anything else
-- see what would happen if mark x was changed to y
-- see what would happen if an assignment was removed
-- add an assignment with hypothetical marks to see what would happen
-- add an assigment to see your real mark before a teacher inputs marks into teachassist
-- fetch marks from teachassist using requests
-- maybe what mark do i need to get in x to have average y?
+- fun hypothetical mark stuff some way better than creating a copy text file and editing it— not sure how this could work without a gui so basically the same as the first point
+- %influence of an assignment, existing or upcoming (bc mrs k always goes "THIS QUIZ WILL BE ONLY JUST 0.1% OF YOUR MARK"— we'll see about that)
+- what mark do i need to get in x to have y— idk man i want this todo list to appear somewhat interesting
 
 ## formatting the data file
 COURSE *name-of-the-course*\n\
@@ -22,6 +19,8 @@ note: any amount of whitespace is allowed when listing assessments, see example 
 *numerator*/*denominator* *weight*\
 or\
 the character 'n' if no mark is given in the strand
+### that section was really confusing
+just look in the example files you'll get it
 
 ## calculation explanation
 this application is intended for the following style of mark calculation:
