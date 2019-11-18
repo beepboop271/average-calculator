@@ -11,7 +11,7 @@ with open("auth.txt") as f:
 ta_courses = get_from_ta({"username": TA_INFO[0], "password": TA_INFO[1]},
                          TA_INFO[2],
                          TA_INFO[3:])
-pack_file(ta_courses, "actual_data.txt")
+# pack_file(ta_courses, "actual_data.txt")
 for course in ta_courses:
     if course is not None:
         course.calculate_course_mark()
