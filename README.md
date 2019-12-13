@@ -1,4 +1,4 @@
-# average-calculator
+# average-calculator (use ta-access branch for teachassist access)
 does stuff with marks: ~~currently only accepts properly formatted text files~~ really really close to getting from teach assist (the hard stuff is all done)
 
 todo:
