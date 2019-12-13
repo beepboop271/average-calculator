@@ -3,6 +3,7 @@ import re
 from .assessment import Assessment
 from .course import Course
 
+TIMEOUT = 0.5
 TA_LOGIN_URL = "https://ta.yrdsb.ca/yrdsb/"
 TA_COURSE_BASE_URL = "https://ta.yrdsb.ca/live/students/viewReport.php"
 MARK_REGEX = r"([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"
@@ -27,7 +28,7 @@ def get_from_ta(auth_dict, student_id, subject_ids):
                                       params={"subject_id": subject_id,
                                               "student_id": student_id},
                                       allow_redirects=False,
-                                      timeout=2)
+                                      timeout=TIMEOUT)
             response.raise_for_status()
             print "got report"
 
@@ -70,7 +71,7 @@ def get_assessments(report):
                           r"(<table)|(</table>)",
                           "<table").content
     # teachassist, why do you put blank lines between each assessment?
-    report = re.sub(r"<tr> <td colspan=\"4\" bgcolor=\"white\"> &nbsp; </td> </tr>",
+    report = re.sub(r"<tr> <td colspan=\"[0-5]\" bgcolor=\"white\"> &nbsp; </td> </tr>",
                     r"",
                     report)
     rows = []

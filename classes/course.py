@@ -22,6 +22,17 @@ class Course():
                 for assessment_obj in assessment_list:
                     self.add_assessment_obj(assessment_obj)
 
+    def __eq__(self, other):
+        if self.mark != other.mark:
+            return False
+        for strand_str in STRAND_STRINGS:
+            if self.strands.get(strand_str) != other.strands.get(strand_str):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not(self == other)
+
     def get_report_str(self, strand_precision=3, course_precision=4):
         s = self.name+"\n\t"
         for strand_str in STRAND_STRINGS:
@@ -40,6 +51,7 @@ class Course():
 
     def add_strand_tuple(self, strand_str, course_weight):
         self.strands[strand_str] = Strand(strand_str, course_weight)
+        # self.calculate_course_mark()
 
     def add_assessment_obj(self, assessment_obj):
         self.assessments.append(assessment_obj)
@@ -47,6 +59,7 @@ class Course():
             if assessment_obj.marks[strand_str] is not None:
                 self.strands[strand_str] \
                         .add_mark_obj(assessment_obj.marks[strand_str])
+        self.calculate_course_mark()
 
     def calculate_course_mark(self):
         total_weights = 0
