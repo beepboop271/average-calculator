@@ -8,9 +8,7 @@ AVERAGE_PRECISION = 10
 with open("auth.txt") as f:
     TA_INFO = f.read().split("\n")
 
-ta_courses = get_from_ta({"username": TA_INFO[0], "password": TA_INFO[1]},
-                         TA_INFO[2],
-                         TA_INFO[3:])
+ta_courses = get_from_ta({"username": TA_INFO[0], "password": TA_INFO[1]})
 # pack_file(ta_courses, "actual_data.txt")
 for course in ta_courses:
     if course is not None:
