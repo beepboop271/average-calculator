@@ -5,12 +5,13 @@ from .course import Course
 
 TA_LOGIN_URL = "https://ta.yrdsb.ca/yrdsb/"
 TA_COURSE_BASE_URL = "https://ta.yrdsb.ca/live/students/viewReport.php"
-MARK_REGEX = r"([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"
-STRAND_PATTERNS = [
-    re.compile(r"<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">" + MARK_REGEX),
-    re.compile(r"<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">" + MARK_REGEX),
-    re.compile(r"<td bgcolor=\"afafff\" align=\"center\" id=\"\S+?\">" + MARK_REGEX),
-    re.compile(r"<td bgcolor=\"ffd490\" align=\"center\" id=\"\S+?\">" + MARK_REGEX)
+_MARK_REGEX = r"([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"
+_STRAND_PATTERNS = [
+    re.compile(r"<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
+    re.compile(r"<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
+    re.compile(r"<td bgcolor=\"afafff\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
+    re.compile(r"<td bgcolor=\"ffd490\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
+    re.compile(r"<td bgcolor=\"dedede\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX)
 ]
 
 
@@ -32,9 +33,9 @@ def get_from_ta(auth_dict, student_id, subject_ids):
             print "got report"
 
             report = re.sub(r"\s+", r" ", response.content)
-            courses.append(Course(get_name(report),
-                                  get_weights(report),
-                                  get_assessments(report)))
+            courses.append(Course(_get_name(report),
+                                  _get_weights(report),
+                                  _get_assessments(report)))
         except requests.HTTPError:
             print "Non-OK response code while getting", subject_id
             courses.append(None)
@@ -47,11 +48,11 @@ def get_from_ta(auth_dict, student_id, subject_ids):
     return courses
 
 
-def get_name(report):
+def _get_name(report):
     return re.search(r"<h2>(\S+?)</h2>", report).group(1)
 
 
-def get_weights(report):
+def _get_weights(report):
     idx = re.search(r"#ffffaa", report).start()
     report = report[idx:idx+800].split("#")
     report.pop(0)
@@ -63,14 +64,14 @@ def get_weights(report):
     return map(float, weights)
 
 
-def get_assessments(report):
+def _get_assessments(report):
     # get the big table of all assessments
     report = _get_end_tag(report,
                           r"table border=\"1\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\"",
                           r"(<table)|(</table>)",
                           "<table").content
     # teachassist, why do you put blank lines between each assessment?
-    report = re.sub(r"<tr> <td colspan=\"4\" bgcolor=\"white\"> &nbsp; </td> </tr>",
+    report = re.sub(r"<tr> <td colspan=\"[0-5]\" bgcolor=\"white\"> &nbsp; </td> </tr>",
                     r"",
                     report)
     rows = []
@@ -87,12 +88,16 @@ def get_assessments(report):
     name = ""
     for row in rows:
         name = re.sub(r"\s+", r"-",
-                      re.search(r"<td rowspan=\"2\">(.+?)</td>", row).group(1).strip())
+                      re.search(r"<td rowspan=\"2\">(.+?)</td>", row)
+                        .group(1)
+                        .strip())
         marks = []
-        for strand_pattern in STRAND_PATTERNS:
+        for strand_pattern in _STRAND_PATTERNS:
             match = re.search(strand_pattern, row)
             if match is not None:
-                marks.append(map(float, [match.group(1), match.group(2), match.group(3)]))
+                marks.append(map(float, [match.group(1),
+                                         match.group(2),
+                                         match.group(3)]))
             else:
                 marks.append(None)
         assessments.append(Assessment(name, marks))

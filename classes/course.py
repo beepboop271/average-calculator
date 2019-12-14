@@ -46,7 +46,7 @@ class Course():
         for strand_str in assessment_obj.marks.keys():
             if assessment_obj.marks[strand_str] is not None:
                 self.strands[strand_str] \
-                        .add_mark_obj(assessment_obj.marks[strand_str])
+                    .add_mark_obj(assessment_obj.marks[strand_str])
 
     def calculate_course_mark(self):
         total_weights = 0
