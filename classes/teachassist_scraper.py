@@ -3,8 +3,10 @@ import re
 from .assessment import Assessment
 from .course import Course
 
+TIMEOUT = 1
 TA_LOGIN_URL = "https://ta.yrdsb.ca/yrdsb/"
 TA_COURSE_BASE_URL = "https://ta.yrdsb.ca/live/students/viewReport.php"
+TA_ID_REGEX = re.compile(r"<a href=\"viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)\">")
 _MARK_REGEX = r"([0-9\.]+) / ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)</font> </td>"
 _STRAND_PATTERNS = [
     re.compile(r"<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
@@ -15,10 +17,19 @@ _STRAND_PATTERNS = [
 ]
 
 
-def get_from_ta(auth_dict, student_id, subject_ids):
+def get_from_ta(auth_dict):
     print "logging in...",
     ta_session = requests.session()
-    ta_session.post(TA_LOGIN_URL, auth_dict)
+    homepage = ta_session.post(TA_LOGIN_URL, auth_dict).content
+
+    ta_ids = re.findall(TA_ID_REGEX, homepage)
+    if len(ta_ids) < 1:
+        print "No open reports found"
+        return []
+
+    student_id = ta_ids[0][1]
+    subject_ids = [match_tuple[0] for match_tuple in ta_ids]
+
     print "logged in"
     courses = []
     for subject_id in subject_ids:
@@ -28,7 +39,7 @@ def get_from_ta(auth_dict, student_id, subject_ids):
                                       params={"subject_id": subject_id,
                                               "student_id": student_id},
                                       allow_redirects=False,
-                                      timeout=2)
+                                      timeout=TIMEOUT)
             response.raise_for_status()
             print "got report"
 

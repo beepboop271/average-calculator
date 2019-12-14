@@ -6,6 +6,20 @@ class Strand():
         self.mark = 1.0
         self.is_valid = False
 
+    def __eq__(self, other):
+        if(other is None
+           or self.mark != other.mark
+           or len(self.marks) != len(other.marks)
+           or self.weight != other.weight):
+            return False
+        for mark in self.marks:
+            if mark not in other:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not(self == other)
+
     # def __str__(self):
     #     s = "("+self.name+" cw"+str(self.weight)+" [ "
     #     for mark in self.marks:
@@ -15,6 +29,7 @@ class Strand():
 
     def add_mark_obj(self, mark_obj):
         self.marks.append(mark_obj)
+        # self.calculate_strand_mark()
 
     def calculate_strand_mark(self):
         total_weights = 0
