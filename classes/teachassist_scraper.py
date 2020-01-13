@@ -13,49 +13,49 @@ _STRAND_PATTERNS = [
     re.compile(r"<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
     re.compile(r"<td bgcolor=\"afafff\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
     re.compile(r"<td bgcolor=\"ffd490\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX),
-    re.compile(r"<td bgcolor=\"dedede\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX)
+    re.compile(r"<td bgcolor=\"#?dedede\" align=\"center\" id=\"\S+?\">" + _MARK_REGEX)
 ]
 
 
 def get_from_ta(auth_dict):
-    print "logging in...",
+    print("logging in... ", end="")
     ta_session = requests.session()
-    homepage = ta_session.post(TA_LOGIN_URL, auth_dict).content
+    homepage = ta_session.post(TA_LOGIN_URL, auth_dict).text
 
-    ta_ids = re.findall(TA_ID_REGEX, homepage)
+    ta_ids = TA_ID_REGEX.findall(homepage)
     if len(ta_ids) < 1:
-        print "No open reports found"
+        print("No open reports found")
         return []
 
     student_id = ta_ids[0][1]
     subject_ids = [match_tuple[0] for match_tuple in ta_ids]
 
-    print "logged in"
+    print("logged in")
     courses = []
     for subject_id in subject_ids:
         try:
-            print "getting "+subject_id+"...",
+            print("getting "+subject_id+"... ", end="")
             response = ta_session.get(TA_COURSE_BASE_URL,
                                       params={"subject_id": subject_id,
                                               "student_id": student_id},
                                       allow_redirects=False,
                                       timeout=TIMEOUT)
             response.raise_for_status()
-            print "got report"
+            print("got report")
 
-            report = re.sub(r"\s+", r" ", response.content)
+            report = re.sub(r"\s+", r" ", response.text)
             courses.append(Course(_get_name(report),
                                   _get_weights(report),
                                   _get_assessments(report)))
         except requests.HTTPError:
-            print "Non-OK response code while getting", subject_id
-            courses.append(None)
+            print("Non-OK response code while getting", subject_id)
+            # courses.append(None)
         except requests.Timeout:
-            print "Timed out while getting", subject_id
-            courses.append(None)
+            print("Timed out while getting", subject_id)
+            # courses.append(None)
         except requests.ConnectionError:
-            print "Could not connect while getting", subject_id
-            courses.append(None)
+            print("Could not connect while getting", subject_id)
+            # courses.append(None)
     return courses
 
 
@@ -72,7 +72,7 @@ def _get_weights(report):
     for i in range(4):
         weights.append(re.findall(r"[0-9\.]+%", report[i])[1][:-1])
     weights.append(re.findall(r"[0-9\.]+%", report[5])[0][:-1])
-    return map(float, weights)
+    return list(map(float, weights))
 
 
 def _get_assessments(report):
@@ -106,9 +106,9 @@ def _get_assessments(report):
         for strand_pattern in _STRAND_PATTERNS:
             match = re.search(strand_pattern, row)
             if match is not None:
-                marks.append(map(float, [match.group(1),
-                                         match.group(2),
-                                         match.group(3)]))
+                marks.append(list(map(float, [match.group(1),
+                                              match.group(2),
+                                              match.group(3)])))
             else:
                 marks.append(None)
         assessments.append(Assessment(name, marks))
@@ -122,7 +122,7 @@ def _get_end_tag(report, start_regex, search_regex, start_tag):
     tags_to_close = 1
     tag_iter = re.finditer(search_regex, report[idx+1:])
     while tags_to_close > 0:
-        next_match = tag_iter.next()
+        next_match = next(tag_iter)
         if next_match.group() == start_tag:
             tags_to_close += 1
         else:

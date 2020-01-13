@@ -9,20 +9,20 @@ def unpack_file(path):
     # for each course
     courses = []
     for i in range(len(data)):
-        courses.append(Course(data[i][0], map(float, data[i][1][1:])))
+        courses.append(Course(data[i][0], list(map(float, data[i][1][1:]))))
         # for each assessment in the course
         for assessment in map(iter, data[i][2:]):
-            assessment_obj = Assessment(assessment.next())
+            assessment_obj = Assessment(next(assessment))
             strand = 0
             # for each strand in the assessment
             while True:
                 try:
                     # either a mark (e.g. 12/13) and a weight (e.g. 4)
                     # or "n" indicating no mark for that strand
-                    part = assessment.next()
+                    part = next(assessment)
                     if part != "n":
-                        weight = assessment.next()
-                        split_mark = map(float, part.split("/"))
+                        weight = next(assessment)
+                        split_mark = list(map(float, part.split("/")))
                         # finally add the mark
                         assessment_obj.add_mark_tuple(split_mark[0],
                                                       split_mark[1],
@@ -48,7 +48,7 @@ def pack_file(courses, path):
             s.append(" "+str(course.strands.get(strand_str).weight))
         s.append("\n")
 
-        for assessment in course.assessments:
+        for assessment in course.get_assessments():
             s.append(_pad(assessment.name, 32))
             for strand_str in STRAND_STRINGS:
                 strand_mark = assessment.marks.get(strand_str)

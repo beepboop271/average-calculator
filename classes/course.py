@@ -3,11 +3,15 @@ STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
 class Course():
+    NOT_PRESENT = 1
+    PRESENT_BUT_DIFFERENT = 2
+    PRESENT = 3
+
     def __init__(self, name,
                  weights=[],
                  assessment_list=None):
         self.name = name
-        self.assessments = []
+        self._assessments = []
         self.mark = 1.0
         self.is_valid = False
         self.strands = {"k": None,
@@ -23,7 +27,9 @@ class Course():
                     self.add_assessment_obj(assessment_obj)
 
     def __eq__(self, other):
-        if self.mark != other.mark:
+        if(other is None
+           or type(other) != type(self)
+           or self.mark != other.mark):
             return False
         for strand_str in STRAND_STRINGS:
             if self.strands.get(strand_str) != other.strands.get(strand_str):
@@ -53,8 +59,22 @@ class Course():
         self.strands[strand_str] = Strand(strand_str, course_weight)
         # self.calculate_course_mark()
 
+    def get_assessments(self):
+        return iter(self._assessments)
+
+    def has_assessment(self, assessment):
+        for own_assessment in self._assessments:
+            if assessment == own_assessment:
+                return (Course.PRESENT,)
+            elif assessment.name == own_assessment.name:
+                return (Course.PRESENT_BUT_DIFFERENT, own_assessment)
+        return (Course.NOT_PRESENT, assessment)
+
+    def remove_assessment(self, i):
+        self._assessments.pop(i)
+
     def add_assessment_obj(self, assessment_obj):
-        self.assessments.append(assessment_obj)
+        self._assessments.append(assessment_obj)
         for strand_str in assessment_obj.marks.keys():
             if assessment_obj.marks[strand_str] is not None:
                 self.strands[strand_str].add_mark_obj(assessment_obj.marks[strand_str])

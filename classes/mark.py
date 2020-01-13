@@ -7,7 +7,8 @@ class Mark(object):
         self.decimal = float(numerator)/denominator
 
     def __eq__(self, other):
-        if other is None:
+        if(other is None
+           or type(other) != type(self)):
             return False
         return (self.numerator == other.numerator
                 and self.denominator == other.denominator
@@ -17,7 +18,10 @@ class Mark(object):
     def __ne__(self, other):
         return not(self == other)
 
-    # def __str__(self):
-    #     return ("("+self.strand+" w"+str(self.weight)+" "
-    #             + str(self.numerator)+"/"+str(self.denominator)+" "
-    #             + str(round(self.decimal*100, 1))+"%)")
+    def __str__(self):
+        return ("Mark({0} W{1} {2}/{3} {4}%)"
+                .format(self.strand_str,
+                        self.weight,
+                        self.numerator,
+                        self.denominator,
+                        round(self.decimal*100, 1)))

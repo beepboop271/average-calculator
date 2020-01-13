@@ -8,12 +8,14 @@ class Strand():
 
     def __eq__(self, other):
         if(other is None
+           or type(other) != type(self)
+           or self.name != other.name
            or self.mark != other.mark
            or len(self.marks) != len(other.marks)
            or self.weight != other.weight):
             return False
         for mark in self.marks:
-            if mark not in other:
+            if not other.has_mark(mark):
                 return False
         return True
 
@@ -30,6 +32,12 @@ class Strand():
     def add_mark_obj(self, mark_obj):
         self.marks.append(mark_obj)
         # self.calculate_strand_mark()
+
+    def has_mark(self, mark_obj):
+        for own_mark in self.marks:
+            if mark_obj == own_mark:
+                return True
+        return False
 
     def calculate_strand_mark(self):
         total_weights = 0
