@@ -11,9 +11,8 @@ with open("auth.txt") as f:
 
 ta_courses = get_from_ta({"username": TA_INFO[0], "password": TA_INFO[1]})
 for course in ta_courses:
-    if course is not None:
-        course.calculate_course_mark()
-        print(course.get_report_str(STRAND_PRECISION, AVERAGE_PRECISION))
+    course.calculate_course_mark()
+    print(course.get_report_str(STRAND_PRECISION, AVERAGE_PRECISION))
 
 print("\n")
 local_courses = unpack_file("actual_data.txt")

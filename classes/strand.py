@@ -22,13 +22,6 @@ class Strand():
     def __ne__(self, other):
         return not(self == other)
 
-    # def __str__(self):
-    #     s = "("+self.name+" cw"+str(self.weight)+" [ "
-    #     for mark in self.marks:
-    #         s += str(mark)+" "
-    #     s += "])"
-    #     return s
-
     def add_mark_obj(self, mark_obj):
         self.marks.append(mark_obj)
         # self.calculate_strand_mark()

@@ -49,13 +49,10 @@ def get_from_ta(auth_dict):
                                   _get_assessments(report)))
         except requests.HTTPError:
             print("Non-OK response code while getting", subject_id)
-            # courses.append(None)
         except requests.Timeout:
             print("Timed out while getting", subject_id)
-            # courses.append(None)
         except requests.ConnectionError:
             print("Could not connect while getting", subject_id)
-            # courses.append(None)
     return courses
 
 

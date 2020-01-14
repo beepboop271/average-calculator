@@ -38,7 +38,7 @@ def merge_course_lists(ta_courses, local_courses):
 
     ta_names = set([course.name for course in ta_courses])
     local_names = set([course.name for course in local_courses])
-    
+
     for new_course_name in (ta_names-local_names):
         print("added", new_course_name, "to local courses")
         local_courses.append(ta_courses_dict.get(new_course_name))
