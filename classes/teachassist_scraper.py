@@ -78,8 +78,8 @@ def _get_assessments(report):
                           r"table border=\"1\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\"",
                           r"(<table)|(</table>)",
                           "<table").content
-    # teachassist, why do you put blank lines between each assessment?
-    report = re.sub(r"<tr> <td colspan=\"[0-5]\" bgcolor=\"white\"> &nbsp; </td> </tr>",
+    # remove the feedback box which is usually empty
+    report = re.sub(r"<tr> <td colspan=\"[0-5]\" bgcolor=\"white\"> [^&]*&nbsp; </td> </tr>",
                     r"",
                     report)
     rows = []
