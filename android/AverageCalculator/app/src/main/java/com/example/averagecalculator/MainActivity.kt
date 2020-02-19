@@ -24,11 +24,11 @@ class MainActivity : AppCompatActivity() {
 
                 // Get new Instance ID token
                 val token = task.result?.token
-
+                t.setText(token);
                 // Log and toast
                 val msg = getString(R.string.msg_token_fmt, token)
                 Log.d("MainActivity", msg)
-                Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-            })
+                // Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+            });
     }
 }
