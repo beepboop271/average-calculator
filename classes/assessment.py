@@ -2,7 +2,7 @@ from .mark import Mark
 STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
-class Assessment():
+class Assessment(object):
     def __init__(self, name,
                  mark_list=None):
         self.name = name

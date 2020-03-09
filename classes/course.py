@@ -2,7 +2,7 @@ from .strand import Strand
 STRAND_STRINGS = ["k", "t", "c", "a", "f"]
 
 
-class Course():
+class Course(object):
     NOT_PRESENT = 1
     PRESENT_BUT_DIFFERENT = 2
     PRESENT = 3

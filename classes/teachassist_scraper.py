@@ -3,7 +3,7 @@ import re
 from .assessment import Assessment
 from .course import Course
 
-TIMEOUT = 1
+TIMEOUT = 0.5
 TA_LOGIN_URL = "https://ta.yrdsb.ca/yrdsb/"
 TA_COURSE_BASE_URL = "https://ta.yrdsb.ca/live/students/viewReport.php"
 TA_ID_REGEX = re.compile(r"<a href=\"viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)\">")
@@ -77,7 +77,7 @@ def _get_assessments(report):
     report = _get_end_tag(report,
                           r"table border=\"1\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\"",
                           r"(<table)|(</table>)",
-                          "<table").content
+                          "<table")["content"]
     # remove the feedback box which is usually empty
     report = re.sub(r"<tr> <td colspan=\"[0-5]\" bgcolor=\"white\"> [^&]*&nbsp; </td> </tr>",
                     r"",
@@ -88,8 +88,8 @@ def _get_assessments(report):
                            r"<tr>",
                            r"(<tr>)|(</tr>)",
                            "<tr>")
-        rows.append(row.content)
-        report = report[row.end:]
+        rows.append(row["content"])
+        report = report[row["end"]:]
     rows.pop(0)
 
     assessments = []
@@ -124,10 +124,6 @@ def _get_end_tag(report, start_regex, search_regex, start_tag):
             tags_to_close += 1
         else:
             tags_to_close -= 1
-    # who knew you could have anonymous objects in python
-    # maybe i shouldn't do this
-    return type("",
-                (object,),
-                {"content": report[idx-1:idx+next_match.end()],
-                 "start": idx-1,
-                 "end": idx+next_match.end()})
+    return {"content": report[idx-1:idx+next_match.end()],
+            "start": idx-1,
+            "end": idx+next_match.end()}

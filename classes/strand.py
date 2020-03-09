@@ -1,4 +1,4 @@
-class Strand():
+class Strand(object):
     def __init__(self, strand_str, course_weight):
         self.name = strand_str
         self.weight = course_weight
