@@ -1,6 +1,9 @@
 require("dotenv-safe").config();
 
-import * as admin from "firebase-admin"
+import rp from "request-promise-native";
+import { CookieJar } from "request";
+
+import * as admin from "firebase-admin";
 admin.initializeApp({
   credential: admin.credential.cert("firebase-key.json")
 });
@@ -13,9 +16,9 @@ const STRAND_PRECISION: number = 5
 const AVERAGE_PRECISION: number = 10
 
 const TIMEOUT: number = 0.5
-const TA_LOGIN_URL: string = "https://ta.yrdsb.ca/yrdsb/"
+const TA_LOGIN_URL: string = "https://ta.yrdsb.ca/yrdsb/index.php"
 const TA_COURSE_BASE_URL: string = "https://ta.yrdsb.ca/live/students/viewReport.php"
-const TA_ID_REGEX: RegExp = /<a href=\"viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)\">/
+const TA_ID_REGEX: RegExp = /<a href=\"viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)\">/;
 const _STRAND_PATTERNS: Array<RegExp> = [
   /<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
   /<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
@@ -384,3 +387,43 @@ function mergeCourseLists(taCourses: Array<Course>, localCourses: Array<Course>)
     }
   });
 }
+
+async function getFromTa(auth: Object): Promise<Array<Course>> {
+  output.push("logging in...");
+  let session: CookieJar = rp.jar();
+
+  let mainPage: string = await rp.post({
+    url: TA_LOGIN_URL,
+    jar: session,
+    form: auth,
+    followAllRedirects: true
+  });
+
+  let idMatcher: RegExp = new RegExp(TA_ID_REGEX, "g");
+
+  let courseIDs: RegExpMatchArray|null = idMatcher.exec(mainPage);
+  if (!courseIDs) {
+    throw new Error("No open reports found"));
+  }
+
+  output.push("logged in");
+  let courses: Array<Course> = [];
+
+  while (courseIDs) {
+    output.push(`getting ${courseIDs[1]}...`);
+    rp.get({
+      url: TA_COURSE_BASE_URL,
+      qs: { subject_id: courseIDs[1], student_id: courseIDs[2] },
+      followAllRedirects: false,
+      timeout: Number(process.env.TIMEOUT)
+    });
+    output.push("got report");
+
+    courseIDs = idMatcher.exec(body);
+  }
+  return courses;
+}
+
+getFromTa({username: process.env.USER, password: process.env.PASS});
+
+console.log(output);
