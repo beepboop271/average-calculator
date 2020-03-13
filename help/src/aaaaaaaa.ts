@@ -109,11 +109,19 @@ class Assessment {
   }
 
   public copyFrom(other: Assessment): void {
-    this._marks = other._marks;
+    other._marks.forEach((v: Mark|null, k: string) => {
+      if (v) {
+        this._marks.set(k, new Mark(v.numerator, v.denominator, v.weight, v.strand));
+      }
+    })
   }
 
   public getMark(strand: string) {
     return this._marks.get(strand)
+  }
+
+  get name() {
+    return this._name;
   }
 }
 
@@ -190,6 +198,10 @@ class Strand {
 
   get mark() {
     return this._mark;
+  }
+
+  get weight() {
+    return this._weight;
   }
 }
 
@@ -270,14 +282,105 @@ class Course {
     });
   }
 
-  public hasAssessment(assessment: Assessment):  {
-    this._assessments.forEach((ownAssessment) => {
-
+  public hasAssessment(assessment: Assessment): number|Assessment {
+    this._assessments.forEach((ownAssessment: Assessment) => {
+      if (ownAssessment.equals(assessment)) {
+        return Course.PRESENT;
+      } else if (ownAssessment.name == assessment.name) {
+        return ownAssessment;
+      }
     });
-    return 
+    return Course.NOT_PRESENT;
+  }
+
+  public removeAssessment(index: number): void {
+    this._assessments.splice(index, 1);
+  }
+
+  public calculateMark(): void {
+    let totalWeight: number = 0;
+    let weightedSum: number = 0;
+
+    this._strands.forEach((strand: Strand|null) => {
+      if (strand) {
+        strand.calculateMark()
+        if (strand.isValid) {
+          totalWeight += strand.weight;
+          weightedSum += strand.mark*strand.weight;
+        }
+      }
+    });
+
+    if (totalWeight == 0) {
+      this._isValid = false;
+      this._mark = 1.0;
+    } else {
+      this._isValid = true
+      this._mark = weightedSum/totalWeight;
+    }
   }
 
   get assessments() {
-    return this._assessments.values;
+    return this._assessments;
   }
+
+  get name() {
+    return this._name;
+  }
+}
+
+function mergeFromInto(taCourse: Course, localCourse: Course): void {
+  if (taCourse.equals(localCourse)) {
+    return;
+  }
+
+  let status: number|Assessment;
+  taCourse.assessments.forEach((taAssessment: Assessment) => {
+    status = localCourse.hasAssessment(taAssessment);
+    // Course.PRESENT: do nothing
+    if (status == Course.NOT_PRESENT) {
+      localCourse.addAssessment(taAssessment);
+      output.push(`added ${taAssessment.name} to ${localCourse.name}`);
+    } else if (typeof status != "number") {
+      // Course.PRESENT_BUT_DIFFERENT
+      (<Assessment>status).copyFrom(taAssessment);
+      output.push(`updated ${taAssessment.name}`);
+    }
+  });
+
+  localCourse.assessments.forEach((localAssignment: Assessment, i: number) => {
+    status = taCourse.hasAssessment(localAssignment);
+    if (status == Course.NOT_PRESENT) {
+      output.push(`removed ${localAssignment.name}`);
+      localCourse.removeAssessment(i);
+    }
+  });
+}
+
+function mergeCourseLists(taCourses: Array<Course>, localCourses: Array<Course>): void {
+  let taMap = new Map<string, Course>();
+  let localMap = new Map<string, Course>();
+
+  taCourses.forEach((course: Course) => {
+    taMap.set(course.name, course);
+  });
+  localCourses.forEach((course: Course) => {
+    localMap.set(course.name, course);
+  });
+
+  let taNames: Set<string> = new Set<string>(taCourses.map((course: Course): string => course.name));
+  let localNames: Set<string> = new Set<string>(localCourses.map((course: Course): string => course.name));
+
+  taNames.forEach((v: string) => {
+    if (!localNames.has(v)) {
+      output.push(`added ${v} to local courses`);
+      localCourses.push(taMap.get(v)!);
+    }
+  });
+
+  localNames.forEach((v: string) => {
+    if (taNames.has(v)) {
+      mergeFromInto(taMap.get(v)!, localMap.get(v)!);
+    }
+  });
 }
