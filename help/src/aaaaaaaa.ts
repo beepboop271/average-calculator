@@ -111,6 +111,10 @@ class Assessment {
   public copyFrom(other: Assessment): void {
     this._marks = other._marks;
   }
+
+  public getMark(strand: string) {
+    return this._marks.get(strand)
+  }
 }
 
 class Strand {
@@ -175,6 +179,18 @@ class Strand {
       this._mark = weightedSum/totalWeight;
     }
   }
+
+  get isValid() {
+    return this._isValid;
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get mark() {
+    return this._mark;
+  }
 }
 
 class Course {
@@ -204,10 +220,64 @@ class Course {
       weights.forEach((weight: number, i: number) => {
         this.addStrand(STRAND_STRINGS[i], weight);
       });
+      assessmentList?.forEach((assessment) => {
+        this.addAssessment(assessment);
+      });
     }
+  }
+
+  public equals(other: Course): boolean {
+    if (!other || (this._mark != other._mark)) {
+      return false;
+    }
+    STRAND_STRINGS.forEach((strand: string) => {
+      if (!this._strands.get(strand)!.equals(other._strands.get(strand)!)) {
+        return false;
+      }
+     });
+    return true;
+  }
+
+  public generateReport(strandPrecision: number = 3, coursePrecision: number = 4): string {
+    let s: string = `${this._name}\n\t`;
+    let strandObj: Strand
+    STRAND_STRINGS.forEach((strand: string) => {
+      strandObj = this._strands.get(strand)!;
+      if (strandObj.isValid) {
+        s += `${strandObj.name} ${(strandObj.mark*100).toFixed(strandPrecision)} \t`;
+      } else {
+        s += `${strandObj.name} None \t`;
+      }
+    });
+    if (this._isValid) {
+      s += `\n\tavg ${(this._mark*100).toFixed(coursePrecision)}\n\tta shows ${(this._mark*100).toFixed(1)}\n`;
+    } else {
+      s += "\n\tavg None\n\tta shows None";
+    }
+    return s;
   }
 
   public addStrand(strand: string, weight: number): void {
     this._strands.set(strand, new Strand(strand, weight));
+  }
+
+  public addAssessment(assessment: Assessment): void {
+    this._assessments.push(assessment);
+    STRAND_STRINGS.forEach((strand: string) => {
+      if (assessment.getMark(strand)) {
+        this._strands.get(strand)!.addMark(assessment.getMark(strand)!);
+      }
+    });
+  }
+
+  public hasAssessment(assessment: Assessment):  {
+    this._assessments.forEach((ownAssessment) => {
+
+    });
+    return 
+  }
+
+  get assessments() {
+    return this._assessments.values;
   }
 }
