@@ -8,24 +8,20 @@ admin.initializeApp({
   credential: admin.credential.cert("firebase-key.json")
 });
 
-const output: Array<string> = [];
+const output: string[] = [];
 
-const STRAND_STRINGS: Array<string> = ["k", "t", "c", "a", "f"];
+// const STRAND_STRINGS: readonly string[] = ["k", "t", "c", "a", "f"];
 
-const STRAND_PRECISION: number = 5
-const AVERAGE_PRECISION: number = 10
-
-const TIMEOUT: number = 0.5
-const TA_LOGIN_URL: string = "https://ta.yrdsb.ca/yrdsb/index.php"
-const TA_COURSE_BASE_URL: string = "https://ta.yrdsb.ca/live/students/viewReport.php"
-const TA_ID_REGEX: RegExp = /<a href=\"viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)\">/;
-const _STRAND_PATTERNS: Array<RegExp> = [
-  /<td bgcolor=\"ffffaa\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
-  /<td bgcolor=\"c0fea4\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
-  /<td bgcolor=\"afafff\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
-  /<td bgcolor=\"ffd490\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/,
-  /<td bgcolor=\"#?dedede\" align=\"center\" id=\"\S+?\">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size=\"-2\">weight=([0-9\.]+)<\/font> <\/td>/
-]
+const TA_LOGIN_URL: string = "https://ta.yrdsb.ca/yrdsb/index.php";
+const TA_COURSE_BASE_URL: string = "https://ta.yrdsb.ca/live/students/viewReport.php";
+const TA_ID_REGEX: RegExp = /<a href="viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)">/;
+const _STRAND_PATTERNS: readonly RegExp[] = [
+  /<td bgcolor="ffffaa" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
+  /<td bgcolor="c0fea4" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
+  /<td bgcolor="afafff" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
+  /<td bgcolor="ffd490" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
+  /<td bgcolor="#?dedede" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/
+];
 
 
 class Mark {
@@ -44,12 +40,14 @@ class Mark {
     this._decimal = numerator/denominator;
   }
 
-  public equals(other: Mark): boolean {
-    return (other
-            && (this._numerator == other._numerator)
-            && (this._denominator == other._denominator)
-            && (this._weight == other._weight)
-            && (this._strand == other._strand));
+  public equals(other: Mark|null): boolean {
+    return (
+      other != null
+      && this._numerator == other._numerator
+      && this._denominator == other._denominator
+      && this._weight == other._weight
+      && this._strand == other._strand
+    );
   }
 
   public toString(): string {
@@ -70,36 +68,85 @@ class Mark {
   }
 }
 
-class Assessment {
-  private _name: string;
-  private _marks: Map<string, Mark|null>;
+class Stranded<T> implements Iterable<[string, T|null]> {
+  private static readonly strands: string[] = ["k", "t", "c", "a", "f"];
+  private static readonly strandSet: Set<string> = new Set(Stranded.strands);
 
-  constructor(name: string, marks: Array<Mark>|null = null) {
-    this._name = name;
-    this._marks = new Map([
-      ["k", null],
-      ["t", null],
-      ["c", null],
-      ["a", null],
-      ["f", null]
+  private data: Map<string, T|null>;
+
+  constructor(
+    k: T|null = null,
+    t: T|null = null,
+    c: T|null = null,
+    a: T|null = null,
+    f: T|null = null
+  ) {
+    this.data = new Map<string, T | null>([
+      ["k", k],
+      ["t", t],
+      ["c", c],
+      ["a", a],
+      ["f", f]
     ]);
-
-    marks?.forEach((mark: Mark) => {
-      if (mark) {
-        this.addMark(mark);
-      }
-    });
   }
 
-  public equals(other: Assessment): boolean {
-    if (!other || (this._name != other._name)) {
+  public [Symbol.iterator](): Iterator<[string, T|null]> {
+    let idx: number = 0;
+    return {
+      next: () => {
+        if (idx < 5) {
+          return {value: [Stranded.strands[idx], this.data.get(Stranded.strands[idx])!], done: false};
+        } else {
+          return {value: undefined, done: true};
+        }
+      }
+    }
+  }
+
+  public get(strand: string): T|null {
+    if (!Stranded.strandSet.has(strand)) {
+      return null;
+    }
+    return this.data.get(strand)!;
+  }
+
+  public set(strand: string, element: T|null): void {
+    if (!Stranded.strandSet.has(strand)) {
+      return;
+    }
+    this.data.set(strand, element);
+  }
+}
+
+class Assessment implements Iterable<[string, Mark|null]> {
+  private _name: string;
+  private _marks: Stranded<Mark>;
+
+  constructor(name: string, marks: readonly Mark[]|null = null) {
+    this._name = name;
+
+    if (marks != null) {
+      this._marks = new Stranded<Mark>(...marks);
+    } else {
+      this._marks = new Stranded<Mark>();
+    }
+  }
+
+  public equals(other: Assessment|null): boolean {
+    if ((other == null) || (this._name != other._name)) {
       return false;
     }
-    this._marks.forEach((v: Mark|null, k: string) => {
-      if (v != other._marks.get(k)) {
+
+    for (let [strand, mark] of this._marks) {
+      if (mark == null) {
+        if (other._marks.get(strand) != null) {
+          return false;
+        }
+      } else if (!mark.equals(other._marks.get(strand)!)) {
         return false;
       }
-    });
+    }
+
     return true;
   }
 
@@ -112,15 +159,19 @@ class Assessment {
   }
 
   public copyFrom(other: Assessment): void {
-    other._marks.forEach((v: Mark|null, k: string) => {
+    for (let [k, v] of other._marks) {
       if (v) {
         this._marks.set(k, new Mark(v.numerator, v.denominator, v.weight, v.strand));
       }
-    })
+    }
   }
 
   public getMark(strand: string) {
-    return this._marks.get(strand)
+    return this._marks.get(strand);
+  }
+
+  public [Symbol.iterator](): Iterator<[string, Mark|null]> {
+    return this._marks[Symbol.iterator]();
   }
 
   get name() {
@@ -131,7 +182,7 @@ class Assessment {
 class Strand {
   private _name: string;
   private _weight: number;
-  private _marks: Array<Mark>;
+  private _marks: Mark[];
   private _mark: number;
   private _isValid: boolean;
 
@@ -143,20 +194,22 @@ class Strand {
     this._isValid = false;
   }
 
-  public equals(other: Strand): boolean {
-    if (!other
-        || (this._name != other._name)
-        || (this._mark != other._mark)
-        || (this._marks.length != other._marks.length)
-        || (this._weight != other._weight)) {
+  public equals(other: Strand|null): boolean {
+    if (
+      (other == null)
+      || (this._name != other._name)
+      || (this._mark != other._mark)
+      || (this._marks.length != other._marks.length)
+      || (this._weight != other._weight)
+    ) {
       return false;
     }
     // rip O(n^2)
-    this._marks.forEach((mark: Mark) => {
+    for (let mark of this._marks) {
       if (!other.hasMark(mark)) {
         return false;
       }
-    });
+    }
     return true;
   }
 
@@ -165,11 +218,11 @@ class Strand {
   }
 
   public hasMark(mark: Mark): boolean {
-    this._marks.forEach((ownMark: Mark) => {
+    for (let ownMark of this._marks) {
       if (ownMark.equals(mark)) {
         return true;
       }
-    });
+    }
     return false;
   }
 
@@ -177,10 +230,10 @@ class Strand {
     let totalWeight: number = 0;
     let weightedSum: number = 0;
 
-    this._marks.forEach((mark: Mark) => {
+    for (let mark of this._marks) {
       totalWeight += mark.weight;
       weightedSum += (mark.numerator/mark.denominator)*mark.weight;
-    });
+    }
 
     if (totalWeight == 0) {
       this._isValid = false;
@@ -214,16 +267,23 @@ class Course {
   public static readonly PRESENT: number = 3;
 
   private _name: string;
-  private _assessments: Array<Assessment>;
+  private _assessments: Assessment[];
   private _mark: number;
   private _isValid: boolean;
-  private _strands: Map<string, Strand|null>;
+  // private _strands: Map<string, Strand | null>;
+  private _strands: Stranded<Strand>;
 
-  constructor(name: string, weights: Array<number> = [], assessmentList: Array<Assessment>|null = null) {
+  constructor(
+    name: string,
+    weights: readonly number[] = [],
+    assessmentList: readonly Assessment[] | null = null
+  ) {
     this._name = name;
     this._assessments = [];
     this._mark = 1.0;
     this._isValid = false;
+    this._strands = new Stranded<Strand>()
+
     this._strands = new Map([
       ["k", null],
       ["t", null],
@@ -235,37 +295,44 @@ class Course {
       weights.forEach((weight: number, i: number) => {
         this.addStrand(STRAND_STRINGS[i], weight);
       });
-      assessmentList?.forEach((assessment) => {
+      assessmentList?.forEach(assessment => {
         this.addAssessment(assessment);
       });
     }
   }
 
-  public equals(other: Course): boolean {
-    if (!other || (this._mark != other._mark)) {
+  public equals(other: Course|null): boolean {
+    if ((other == null) || (this._mark != other._mark)) {
       return false;
     }
-    STRAND_STRINGS.forEach((strand: string) => {
-      if (!this._strands.get(strand)!.equals(other._strands.get(strand)!)) {
-        return false;
+
+    for (let [strandStr, strand] of this._strands) {
+      if (strand == null) {
+        if (other._strands.get(strandStr) != null) {
+          return false;
+        }
+      } else {
+        if (!strand.equals(other._strands.get(strandStr))) {
+          return false;
+        }
       }
-     });
+    }
     return true;
   }
 
-  public generateReport(strandPrecision: number = 3, coursePrecision: number = 4): string {
+  public generateReport(precision: number = 4): string {
     let s: string = `${this._name}\n\t`;
-    let strandObj: Strand
-    STRAND_STRINGS.forEach((strand: string) => {
-      strandObj = this._strands.get(strand)!;
-      if (strandObj.isValid) {
-        s += `${strandObj.name} ${(strandObj.mark*100).toFixed(strandPrecision)} \t`;
+
+    for (let [strandStr, strand] of this._strands) {
+      if ((strand != null) && strand.isValid) {
+        s += `${strandStr} ${(strand.mark*100).toFixed(precision)} \t`;
       } else {
-        s += `${strandObj.name} None \t`;
+        s += `${strandStr} None \t`;
       }
-    });
+    }
+
     if (this._isValid) {
-      s += `\n\tavg ${(this._mark*100).toFixed(coursePrecision)}\n\tta shows ${(this._mark*100).toFixed(1)}\n`;
+      s += `\n\tavg ${(this._mark*100).toFixed(precision)}\n\tta shows ${(this._mark*100).toFixed(1)}\n`;
     } else {
       s += "\n\tavg None\n\tta shows None";
     }
@@ -278,14 +345,22 @@ class Course {
 
   public addAssessment(assessment: Assessment): void {
     this._assessments.push(assessment);
-    STRAND_STRINGS.forEach((strand: string) => {
-      if (assessment.getMark(strand)) {
-        this._strands.get(strand)!.addMark(assessment.getMark(strand)!);
+    for (let a of assessment.s) {
+
+    }
+
+    for (let strand of STRAND_STRINGS) {
+      if (assessment.getMark(strand) != null) {
+        if (this._strands.get(strand) != null) {
+          this._strands.get(strand)!.addMark(assessment.getMark(strand)!);
+        } else {
+          throw new Error("Tried to add to nonexistent strand");
+        }
       }
-    });
+    }
   }
 
-  public hasAssessment(assessment: Assessment): number|Assessment {
+  public hasAssessment(assessment: Assessment): number | Assessment {
     this._assessments.forEach((ownAssessment: Assessment) => {
       if (ownAssessment.equals(assessment)) {
         return Course.PRESENT;
@@ -304,12 +379,12 @@ class Course {
     let totalWeight: number = 0;
     let weightedSum: number = 0;
 
-    this._strands.forEach((strand: Strand|null) => {
+    this._strands.forEach((strand: Strand | null) => {
       if (strand) {
-        strand.calculateMark()
+        strand.calculateMark();
         if (strand.isValid) {
           totalWeight += strand.weight;
-          weightedSum += strand.mark*strand.weight;
+          weightedSum += strand.mark * strand.weight;
         }
       }
     });
@@ -318,8 +393,8 @@ class Course {
       this._isValid = false;
       this._mark = 1.0;
     } else {
-      this._isValid = true
-      this._mark = weightedSum/totalWeight;
+      this._isValid = true;
+      this._mark = weightedSum / totalWeight;
     }
   }
 
@@ -360,7 +435,7 @@ function mergeFromInto(taCourse: Course, localCourse: Course): void {
   });
 }
 
-function mergeCourseLists(taCourses: Array<Course>, localCourses: Array<Course>): void {
+function mergeCourseLists(taCourses: readonly Course[], localCourses: Course[]): void {
   let taMap = new Map<string, Course>();
   let localMap = new Map<string, Course>();
 
@@ -388,42 +463,165 @@ function mergeCourseLists(taCourses: Array<Course>, localCourses: Array<Course>)
   });
 }
 
-async function getFromTa(auth: Object): Promise<Array<Course>> {
+interface IAuthMap {
+  username: string,
+  password: string
+}
+
+async function getFromTa(auth: IAuthMap): Promise<Course[]> {
   output.push("logging in...");
   let session: CookieJar = rp.jar();
 
-  let mainPage: string = await rp.post({
+  let homePage: string = await rp.post({
     url: TA_LOGIN_URL,
     jar: session,
     form: auth,
-    followAllRedirects: true
+    followAllRedirects: true,
+    timeout: Number(process.env.TIMEOUT)
   });
 
   let idMatcher: RegExp = new RegExp(TA_ID_REGEX, "g");
 
-  let courseIDs: RegExpMatchArray|null = idMatcher.exec(mainPage);
+  let courseIDs: RegExpMatchArray|null = idMatcher.exec(homePage);
   if (!courseIDs) {
-    throw new Error("No open reports found"));
+    output.push("No open reports found");
+    throw new Error("No open reports found");
   }
 
   output.push("logged in");
-  let courses: Array<Course> = [];
+  let courses: Course[] = [];
+
+  let report: string;
+  let name: string|null;
+  let weights: number[]|null;
+  let assessments: Assessment[]|null;
+// console.log(report);
 
   while (courseIDs) {
     output.push(`getting ${courseIDs[1]}...`);
-    rp.get({
+    report = await rp.get({
       url: TA_COURSE_BASE_URL,
+      jar: session,
       qs: { subject_id: courseIDs[1], student_id: courseIDs[2] },
       followAllRedirects: false,
       timeout: Number(process.env.TIMEOUT)
     });
     output.push("got report");
 
-    courseIDs = idMatcher.exec(body);
+    report = report.replace(/\s+/g, " ");
+
+    name = getName(report);
+    if (name != null) {
+      console.log(name);
+      weights = getWeights(report);
+
+      if (weights != null) {
+        console.log(weights);
+        assessments = getAssessments(report);
+
+        if (assessments != null) {
+          courses.push(new Course(name, weights, assessments));
+        } else {
+          output.push("Course assessments not found");
+          // throw new Error("Course assessments not found");
+        }
+      } else {
+        output.push("Course weights not found");
+        // throw new Error("Course weights not found");
+      }
+    } else {
+      output.push("Course name not found");
+      // throw new Error("Course name not found");
+    }
+    // console.log(report.substring(idMatcher.lastIndex));
+    courseIDs = idMatcher.exec(homePage);
+    // console.log(courseIDs);
   }
   return courses;
 }
 
-getFromTa({username: process.env.USER, password: process.env.PASS});
+function getName(report: string): string|null {
+  const match: RegExpExecArray|null = /<h2>(\S+?)<\/h2>/.exec(report);
+  if (match) {
+    return match[1];
+  } else {
+    return null;
+  }
+}
 
-console.log(output);
+function getWeights(report: string): number[]|null {
+  const idx: number = report.indexOf("#ffffaa");
+  if (idx == -1) {
+    return null;
+  }
+  report = report.slice(idx, idx+800);
+
+  let weightTable: string[] = report.split("#");
+  weightTable.shift();
+
+  let weights: number[] = [];
+  for (let i: number = 0; i < 4; ++i) {
+    weights.push(Number(
+      weightTable[i]
+        .substring(weightTable[i].indexOf("%"))
+        .match(/([0-9\.]+)%/)![1]
+    ));
+  }
+  return weights;
+}
+
+function getAssessments(report: string): Assessment[]|null {
+  let assessmentTable: ITagMatch|null = getEndTag(
+    report,
+    /table border="1" cellpadding="3" cellspacing="0" width="100%"/,
+    /(<table)|(<\/table>)/,
+    "<table"
+  );
+  if (assessmentTable == null) {
+    return null;
+  }
+
+  report = assessmentTable.content;
+
+  return null;
+}
+
+interface ITagMatch {
+  content: string,
+  next: string
+};
+
+function getEndTag(report: string, beginningPattern: RegExp, searchPattern: RegExp, startTag: string): ITagMatch|null {
+  let match: RegExpMatchArray|null = report.match(beginningPattern);
+  if (match == null) {
+    return null;
+  }
+  let idx: number = match.index!;
+
+  let tagsToClose: number = 1;
+  let searcher: RegExp = new RegExp(searchPattern, "g");
+
+  while (tagsToClose > 0) {
+    match = searcher.exec(report.substring(idx+1));
+    if (match == null) {
+      return null;
+    }
+    if (match[0] == startTag) {
+      ++tagsToClose;
+    } else {
+      --tagsToClose;
+    }
+  }
+
+  return {
+    content: report.slice(idx-1, idx+match.index!+match[0].length),
+    next: report.substring(idx+match.index!+match[0].length)
+  };
+}
+
+getFromTa({
+  username: process.env.USER!,
+  password: process.env.PASS!
+}).then(() => console.log(output));
+
+// console.log(output);
