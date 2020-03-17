@@ -15,7 +15,7 @@ const output: string[] = [];
 const TA_LOGIN_URL: string = "https://ta.yrdsb.ca/yrdsb/index.php";
 const TA_COURSE_BASE_URL: string = "https://ta.yrdsb.ca/live/students/viewReport.php";
 const TA_ID_REGEX: RegExp = /<a href="viewReport.php\?subject_id=([0-9]+)&student_id=([0-9]+)">/;
-const _STRAND_PATTERNS: readonly RegExp[] = [
+const STRAND_PATTERNS: readonly RegExp[] = [
   /<td bgcolor="ffffaa" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
   /<td bgcolor="c0fea4" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
   /<td bgcolor="afafff" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/,
@@ -23,20 +23,18 @@ const _STRAND_PATTERNS: readonly RegExp[] = [
   /<td bgcolor="#?dedede" align="center" id="\S+?">([0-9\.]+) \/ ([0-9\.]+).+?<br> <font size="-2">weight=([0-9\.]+)<\/font> <\/td>/
 ];
 
+type StrandString = "k"|"t"|"c"|"a"|"f";
 
 class Mark {
   private _numerator: number;
   private _denominator: number;
   private _weight: number;
-  private _strand: string;
   private _decimal: number;
 
-  constructor(numerator: number, denominator: number, weight: number,
-              strand: string) {
+  constructor(numerator: number, denominator: number, weight: number) {
     this._numerator = numerator;
     this._denominator = denominator;
     this._weight = weight;
-    this._strand = strand;
     this._decimal = numerator/denominator;
   }
 
@@ -46,17 +44,13 @@ class Mark {
       && this._numerator == other._numerator
       && this._denominator == other._denominator
       && this._weight == other._weight
-      && this._strand == other._strand
     );
   }
 
   public toString(): string {
-    return `Mark(${this._strand} W${this._weight} ${this._numerator}/${this._denominator} ${(this._decimal*100).toFixed(2)})`;
+    return `Mark(W${this._weight} ${this._numerator}/${this._denominator} ${(this._decimal*100).toFixed(2)})`;
   }
 
-  get strand() {
-    return this._strand;
-  }
   get weight() {
     return this._weight;
   }
@@ -68,11 +62,11 @@ class Mark {
   }
 }
 
-class Stranded<T> implements Iterable<[string, T|null]> {
-  private static readonly strands: string[] = ["k", "t", "c", "a", "f"];
-  private static readonly strandSet: Set<string> = new Set(Stranded.strands);
+class Stranded<T> implements Iterable<[StrandString, T|null]> {
+  public static readonly STRANDS: StrandString[] = ["k", "t", "c", "a", "f"];
+  private static readonly strandSet: Set<StrandString> = new Set(Stranded.STRANDS);
 
-  private data: Map<string, T|null>;
+  private data: Map<StrandString, T|null>;
 
   constructor(
     k: T|null = null,
@@ -81,7 +75,7 @@ class Stranded<T> implements Iterable<[string, T|null]> {
     a: T|null = null,
     f: T|null = null
   ) {
-    this.data = new Map<string, T | null>([
+    this.data = new Map<StrandString, T | null>([
       ["k", k],
       ["t", t],
       ["c", c],
@@ -90,12 +84,12 @@ class Stranded<T> implements Iterable<[string, T|null]> {
     ]);
   }
 
-  public [Symbol.iterator](): Iterator<[string, T|null]> {
+  public [Symbol.iterator](): Iterator<[StrandString, T|null]> {
     let idx: number = 0;
     return {
       next: () => {
         if (idx < 5) {
-          return {value: [Stranded.strands[idx], this.data.get(Stranded.strands[idx])!], done: false};
+          return {value: [Stranded.STRANDS[idx], this.data.get(Stranded.STRANDS[idx++])!], done: false};
         } else {
           return {value: undefined, done: true};
         }
@@ -103,26 +97,20 @@ class Stranded<T> implements Iterable<[string, T|null]> {
     }
   }
 
-  public get(strand: string): T|null {
-    if (!Stranded.strandSet.has(strand)) {
-      return null;
-    }
+  public get(strand: StrandString): T|null {
     return this.data.get(strand)!;
   }
 
-  public set(strand: string, element: T|null): void {
-    if (!Stranded.strandSet.has(strand)) {
-      return;
-    }
+  public set(strand: StrandString, element: T|null): void {
     this.data.set(strand, element);
   }
 }
 
-class Assessment implements Iterable<[string, Mark|null]> {
+class Assessment implements Iterable<[StrandString, Mark|null]> {
   private _name: string;
   private _marks: Stranded<Mark>;
 
-  constructor(name: string, marks: readonly Mark[]|null = null) {
+  constructor(name: string, marks: readonly (Mark|null)[]|null = null) {
     this._name = name;
 
     if (marks != null) {
@@ -142,7 +130,7 @@ class Assessment implements Iterable<[string, Mark|null]> {
         if (other._marks.get(strand) != null) {
           return false;
         }
-      } else if (!mark.equals(other._marks.get(strand)!)) {
+      } else if (!mark.equals(other._marks.get(strand))) {
         return false;
       }
     }
@@ -154,23 +142,21 @@ class Assessment implements Iterable<[string, Mark|null]> {
     return `Assessment(${this._name}: K:${this._marks.get("k")} T:${this._marks.get("t")} C:${this._marks.get("c")} A:${this._marks.get("a")} F:${this._marks.get("f")})`;
   }
 
-  public addMark(mark: Mark): void {
-    this._marks.set(mark.strand, mark);
-  }
-
   public copyFrom(other: Assessment): void {
-    for (let [k, v] of other._marks) {
-      if (v) {
-        this._marks.set(k, new Mark(v.numerator, v.denominator, v.weight, v.strand));
+    for (let [strand, mark] of other._marks) {
+      if (mark == null) {
+        this._marks.set(strand, null);
+      } else {
+        this._marks.set(strand, new Mark(mark.numerator, mark.denominator, mark.weight));
       }
     }
   }
 
-  public getMark(strand: string) {
+  public getMark(strand: StrandString) {
     return this._marks.get(strand);
   }
 
-  public [Symbol.iterator](): Iterator<[string, Mark|null]> {
+  public [Symbol.iterator](): Iterator<[StrandString, Mark|null]> {
     return this._marks[Symbol.iterator]();
   }
 
@@ -180,13 +166,13 @@ class Assessment implements Iterable<[string, Mark|null]> {
 }
 
 class Strand {
-  private _name: string;
+  private _name: StrandString;
   private _weight: number;
   private _marks: Mark[];
   private _mark: number;
   private _isValid: boolean;
 
-  constructor(strand: string, weight: number) {
+  constructor(strand: StrandString, weight: number) {
     this._name = strand;
     this._weight = weight;
     this._marks = [];
@@ -270,34 +256,29 @@ class Course {
   private _assessments: Assessment[];
   private _mark: number;
   private _isValid: boolean;
-  // private _strands: Map<string, Strand | null>;
   private _strands: Stranded<Strand>;
 
   constructor(
     name: string,
     weights: readonly number[] = [],
-    assessmentList: readonly Assessment[] | null = null
+    assessmentList: readonly Assessment[]|null = null
   ) {
     this._name = name;
     this._assessments = [];
     this._mark = 1.0;
     this._isValid = false;
-    this._strands = new Stranded<Strand>()
 
-    this._strands = new Map([
-      ["k", null],
-      ["t", null],
-      ["c", null],
-      ["a", null],
-      ["f", null]
-    ]);
-    if (weights.length == this._strands.size) {
-      weights.forEach((weight: number, i: number) => {
-        this.addStrand(STRAND_STRINGS[i], weight);
-      });
+    if (weights.length == Stranded.STRANDS.length) {
+      this._strands = new Stranded<Strand>(
+        ...Stranded.STRANDS.map((strand: StrandString, i: number): Strand => {
+          return new Strand(strand, weights[i]);
+        })
+      );
       assessmentList?.forEach(assessment => {
         this.addAssessment(assessment);
       });
+    } else {
+      this._strands = new Stranded<Strand>();
     }
   }
 
@@ -339,35 +320,31 @@ class Course {
     return s;
   }
 
-  public addStrand(strand: string, weight: number): void {
+  public addStrand(strand: StrandString, weight: number): void {
     this._strands.set(strand, new Strand(strand, weight));
   }
 
   public addAssessment(assessment: Assessment): void {
     this._assessments.push(assessment);
-    for (let a of assessment.s) {
-
-    }
-
-    for (let strand of STRAND_STRINGS) {
-      if (assessment.getMark(strand) != null) {
+    for (let [strand, mark] of assessment) {
+      if (mark != null) {
         if (this._strands.get(strand) != null) {
-          this._strands.get(strand)!.addMark(assessment.getMark(strand)!);
+          this._strands.get(strand)!.addMark(mark);
         } else {
-          throw new Error("Tried to add to nonexistent strand");
+          throw new Error(`Tried to add to nonexistent strand ${strand} when adding ${assessment.toString()}`);
         }
       }
     }
   }
 
   public hasAssessment(assessment: Assessment): number | Assessment {
-    this._assessments.forEach((ownAssessment: Assessment) => {
+    for (let ownAssessment of this._assessments) {
       if (ownAssessment.equals(assessment)) {
         return Course.PRESENT;
       } else if (ownAssessment.name == assessment.name) {
         return ownAssessment;
       }
-    });
+    }
     return Course.NOT_PRESENT;
   }
 
@@ -379,15 +356,15 @@ class Course {
     let totalWeight: number = 0;
     let weightedSum: number = 0;
 
-    this._strands.forEach((strand: Strand | null) => {
-      if (strand) {
+    for (let [strandStr, strand] of this._strands) {
+      if (strand != null) {
         strand.calculateMark();
         if (strand.isValid) {
           totalWeight += strand.weight;
-          weightedSum += strand.mark * strand.weight;
+          weightedSum += strand.mark*strand.weight;
         }
       }
-    });
+    }
 
     if (totalWeight == 0) {
       this._isValid = false;
@@ -413,7 +390,7 @@ function mergeFromInto(taCourse: Course, localCourse: Course): void {
   }
 
   let status: number|Assessment;
-  taCourse.assessments.forEach((taAssessment: Assessment) => {
+  for (let taAssessment of taCourse.assessments) {
     status = localCourse.hasAssessment(taAssessment);
     // Course.PRESENT: do nothing
     if (status == Course.NOT_PRESENT) {
@@ -424,43 +401,47 @@ function mergeFromInto(taCourse: Course, localCourse: Course): void {
       (<Assessment>status).copyFrom(taAssessment);
       output.push(`updated ${taAssessment.name}`);
     }
-  });
+  }
 
-  localCourse.assessments.forEach((localAssignment: Assessment, i: number) => {
-    status = taCourse.hasAssessment(localAssignment);
+  for (let i: number = 0, len: number = localCourse.assessments.length; i < len; ++i) {
+    status = taCourse.hasAssessment(localCourse.assessments[i]);
     if (status == Course.NOT_PRESENT) {
-      output.push(`removed ${localAssignment.name}`);
+      output.push(`removed ${localCourse.assessments[i].name}`);
       localCourse.removeAssessment(i);
     }
-  });
+  }
 }
 
 function mergeCourseLists(taCourses: readonly Course[], localCourses: Course[]): void {
   let taMap = new Map<string, Course>();
   let localMap = new Map<string, Course>();
 
-  taCourses.forEach((course: Course) => {
+  for (let course of taCourses) {
     taMap.set(course.name, course);
-  });
-  localCourses.forEach((course: Course) => {
+  }
+  for (let course of localCourses) {
     localMap.set(course.name, course);
-  });
+  }
 
-  let taNames: Set<string> = new Set<string>(taCourses.map((course: Course): string => course.name));
-  let localNames: Set<string> = new Set<string>(localCourses.map((course: Course): string => course.name));
+  let taNames: Set<string> = new Set<string>(
+    taCourses.map((course: Course): string => course.name)
+  );
+  let localNames: Set<string> = new Set<string>(
+    localCourses.map((course: Course): string => course.name)
+  );
 
-  taNames.forEach((v: string) => {
-    if (!localNames.has(v)) {
-      output.push(`added ${v} to local courses`);
-      localCourses.push(taMap.get(v)!);
+  for (let name of taNames) {
+    if (!localNames.has(name)) {
+      output.push(`added ${name} to local courses`);
+      localCourses.push(taMap.get(name)!);
     }
-  });
+  }
 
-  localNames.forEach((v: string) => {
-    if (taNames.has(v)) {
-      mergeFromInto(taMap.get(v)!, localMap.get(v)!);
+  for (let name of localNames) {
+    if (taNames.has(name)) {
+      mergeFromInto(taMap.get(name)!, localMap.get(name)!);
     }
-  });
+  }
 }
 
 interface IAuthMap {
@@ -495,7 +476,6 @@ async function getFromTa(auth: IAuthMap): Promise<Course[]> {
   let name: string|null;
   let weights: number[]|null;
   let assessments: Assessment[]|null;
-// console.log(report);
 
   while (courseIDs) {
     output.push(`getting ${courseIDs[1]}...`);
@@ -508,6 +488,7 @@ async function getFromTa(auth: IAuthMap): Promise<Course[]> {
     });
     output.push("got report");
 
+    // report = report.replace(/(?:\s|<br>)+/g, " ");
     report = report.replace(/\s+/g, " ");
 
     name = getName(report);
@@ -533,9 +514,7 @@ async function getFromTa(auth: IAuthMap): Promise<Course[]> {
       output.push("Course name not found");
       // throw new Error("Course name not found");
     }
-    // console.log(report.substring(idMatcher.lastIndex));
     courseIDs = idMatcher.exec(homePage);
-    // console.log(courseIDs);
   }
   return courses;
 }
@@ -558,15 +537,24 @@ function getWeights(report: string): number[]|null {
 
   let weightTable: string[] = report.split("#");
   weightTable.shift();
-
+  console.log(weightTable);
   let weights: number[] = [];
+  let match: RegExpMatchArray|null;
+
   for (let i: number = 0; i < 4; ++i) {
-    weights.push(Number(
-      weightTable[i]
-        .substring(weightTable[i].indexOf("%"))
-        .match(/([0-9\.]+)%/)![1]
-    ));
+    match = weightTable[i].substring(weightTable[i].indexOf("%")).match(/([0-9\.]+)%/);
+    if (match == null) {
+      throw new Error(`Found weight table but couldn't find weight percentages in:\n${weightTable[i]}`);
+    }
+    weights.push(Number(match[1]));
   }
+
+  match = weightTable[5]?.match(/([0-9\.]+)%/);
+  if (match == null) {
+    throw new Error(`Could not find final weight in:\n${weightTable}`);
+  }
+  weights.push(Number(match[1]));
+
   return weights;
 }
 
@@ -581,9 +569,56 @@ function getAssessments(report: string): Assessment[]|null {
     return null;
   }
 
-  report = assessmentTable.content;
+  report = assessmentTable.content.replace(
+    /<tr> <td colspan="[0-5]" bgcolor="white"> [^&]*&nbsp; <\/td> <\/tr>/g,
+    ""
+  );
 
-  return null;
+  console.log(report);
+
+  let row: ITagMatch|null;
+  let rows: string[] = [];
+  const tablePattern: RegExp = /<tr>.+<\/tr>/;
+  while (tablePattern.test(report)) {
+    row = getEndTag(report, /<tr>/, /(<tr>)|(<\/tr>)/, "<tr>");
+    if (row == null) {
+      throw new Error(`Expected to find an assessment but none was found in:\n${report}`);
+    }
+    rows.push(row.content);
+    report = row.next;
+  }
+  rows.shift();
+
+  console.log(rows);
+
+  let assessments: Assessment[] = [];
+
+  const namePattern: RegExp = /<td rowspan="2">(.+?)<\/td>/;
+  let name: string;
+  let match: RegExpExecArray|null;
+  let marks: (Mark|null)[];
+
+  for (let row of rows) {
+    marks = [];
+
+    match = namePattern.exec(row);
+    if (match == null) {
+      throw new Error(`Could not find assessment name in row:\n${row}`);
+    }
+    name = match[1].trim(); //.replace(/\s+/, "-");
+
+    for (let pattern of STRAND_PATTERNS) {
+      match = pattern.exec(row);
+      if (match == null) {
+        marks.push(null);
+      } else {
+        marks.push(new Mark(Number(match[1]), Number(match[2]), Number(match[3])))
+      }
+    }
+
+    assessments.push(new Assessment(name, marks));
+  }
+  return assessments;
 }
 
 interface ITagMatch {
@@ -614,14 +649,21 @@ function getEndTag(report: string, beginningPattern: RegExp, searchPattern: RegE
   }
 
   return {
-    content: report.slice(idx-1, idx+match.index!+match[0].length),
-    next: report.substring(idx+match.index!+match[0].length)
+    content: report.slice(idx-1, idx+match.index!+1+match[0].length),
+    next: report.substring(idx+match.index!+1+match[0].length)
   };
 }
 
 getFromTa({
   username: process.env.USER!,
   password: process.env.PASS!
-}).then(() => console.log(output));
+}).then((courses: Course[]) => {
+  console.log(output);
+  for (let course of courses) {
+    course.calculateMark();
+    console.log(course.generateReport());
+  }
+  console.log(courses);
+});
 
 // console.log(output);
