@@ -2,18 +2,14 @@
 
 does stuff with marks\
 now in python 3\
-also no more dumb typing text files, teachassist stuff is completely done
+also no more dumb typing text files, teachassist stuff is completely done\
+also notifications and whatnot are being developed in https://github.com/beepboop271/average-calculator-v2 because it is significantly different from this python program. you can also use the typescript version there instead of the python script if you want, the only re al difference is that the typescript one explains errors more.
 
 todo:
 
-- gui feat. pygame because thats what we used in grade 10 comp sci and im not learning anything else
 - fun hypothetical mark stuff some way better than creating a copy text file and editing it— not sure how this could work without a gui so basically the same as the first point
 - %influence of an assignment, existing or upcoming (bc mrs k always goes "THIS QUIZ WILL BE ONLY JUST 0.1% OF YOUR MARK"— we'll see about that)
 - what mark do i need to get in x to have y— idk man i want this todo list to appear somewhat interesting
-
-## formatting the data file
-
-this doesn't really matter anymore because the files are properly saved by the program when getting from teachassist, just look at past versions or something if you really want to know the format
 
 ## unnecessarily long calculation explanation
 
