@@ -1,4 +1,5 @@
 */__pycache__/
 .vscode
+android
 auth.txt
 actual_data.txt
